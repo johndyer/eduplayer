@@ -1294,9 +1294,13 @@ Player.prototype = {
 
 					var line = self.transcriptData[i];
 
-					if (currentTime >= line.startTime && currentTime <= line.endTime && self.currentTranscriptIndex != i) {
-						self.showTranscriptLine(i);
-						break;
+					if (currentTime >= line.startTime && currentTime <= line.endTime) {
+						
+						if (self.currentTranscriptIndex != i) {
+							self.showTranscriptLine(i);
+						}
+						// the break happens here just in case there's a transcript line later in the list that might overlap and trigger flickering
+						break;						
 					}
 				}
 			}
