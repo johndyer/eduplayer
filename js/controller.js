@@ -1,0 +1,4 @@
+var CoursesController = function() {
+	
+	
+};
