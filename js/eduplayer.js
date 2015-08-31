@@ -45,20 +45,28 @@ Player.prototype = {
 
 
 		self.mainVideo.on('canplay loadeddata loadedmetadata', function() {
-			console.log('setting speed',self.settings.speed )
+			console.log('setting speed', 'mainVideo loaded', self.settings.speed );
 			self.mainVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.slideVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.resizePlayer();
 		});
 
 		self.slideVideo.on('canplay loadeddata loadedmetadata', function() {
+			console.log('setting speed', 'slideVideo loaded', self.settings.speed );			
+			
 			self.mainVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.mainAudioNode.playbackRate = parseFloat(self.settings.speed);
 			self.slideVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.resizePlayer();
 		});
+		
+		self.slideVideo.on('error', function() {
+			self.displaySlidesMessage('Error loading slides feed');
+		});
 
 		self.mainAudio.on('canplay loadeddata loadedmetadata', function() {
+			console.log('setting speed', 'mainAudio loaded', self.settings.speed );			
+			
 			self.mainAudioNode.playbackRate = parseFloat(self.settings.speed);
 			self.slideVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.resizePlayer();
@@ -546,15 +554,16 @@ Player.prototype = {
 		speedSetting.on('change', 'select', function() {
 
 			var newValue = $(this).val();
-			self.settings.arrangement = newValue;
+			self.settings.speed = newValue;
 			self.setValue('player-setting-speed', newValue );
 
-			self.mainVideoNode.playbackRate = parseFloat( newValue );
+			self.mainVideoNode.playbackRate = parseFloat( newValue );			
 			self.mainAudioNode.playbackRate = parseFloat( newValue );
+			self.slideVideoNode.playbackRate = parseFloat( newValue );			
 		});
 
 		self.mainVideo.on('ratechange', function() {
-			console.log('rate changed');
+			console.log('rate changed', self.mainVideoNode.playbackRate, self.mainAudioNode.playbackRate, self.slideVideoNode.playbackRate);
 		});
 
 
@@ -921,7 +930,9 @@ Player.prototype = {
 		var self = this,
 			doc = $(document),
 
+			
 			timelineOuter = $('<div class="player-timeline-outer"></div>').appendTo(self.controllerBar),
+			timelineBuffer = $('<div class="player-timeline-buffering"></div>').appendTo(timelineOuter).hide(),
 			timelineLoaded = $('<div class="player-timeline-loaded"></div>').appendTo(timelineOuter),
 			timelineCurrent = $('<div class="player-timeline-current"></div>').appendTo(timelineOuter),
 			timelineHandle = $('<div class="player-timeline-handle"></div>').appendTo(timelineOuter);
@@ -930,6 +941,20 @@ Player.prototype = {
 
 		self.mainVideo.on('timeupdate', timelineUpdate);
 		self.mainAudio.on('timeupdate', timelineUpdate);
+		
+		self.mainAudio.on('loadstart seeking stalled waiting', showBuffer);
+		self.mainVideo.on('loadstart seeking stalled waiting', showBuffer);		
+		
+		self.mainAudio.on('play playing seeked', hideBuffer);
+		self.mainVideo.on('play playing seeked', hideBuffer);		
+		
+		function showBuffer() {
+			timelineBuffer.show();			
+		}	
+		
+		function hideBuffer() {
+			timelineBuffer.hide();
+		}				
 
 
 		function timelineUpdate() {
@@ -1239,6 +1264,9 @@ Player.prototype = {
 			self.slideVideoContainer.hide();
 
 			self.loadSlideImages(slidesDataUrl, slideImagesPath);
+		} else if (slidesDataUrl == '' && slidesVideoUrl == '') {
+			// no slides at all
+			self.displaySlidesMessage('This video does not have slides');
 		}
 
 		self.loadTranscript(transcriptUrl);
@@ -1586,13 +1614,23 @@ Player.prototype = {
 			},
 			error: function () {
 				console.log('- error loading slides');
+				
+				self.displaySlidesMessage('Error loading slides');	
 
-				$('<div class="player-error">No slides available</div>')
-					.appendTo(self.slidesContainer);
 			}
 
 		});
 
+	},
+	
+	displaySlidesMessage: function(message) {			
+		var self = this;
+		
+		$('<div class="player-error">' + message + '</div>')
+			.appendTo(self.slidesContainer);		
+						
+		self.slideVideoContainer.hide();			
+		self.slidesContainer.show();			
 	},
 
 	slidesDuration: function() {
