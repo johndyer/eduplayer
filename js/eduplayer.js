@@ -48,7 +48,11 @@ Player.prototype = {
 			console.log('setting speed', 'mainVideo loaded', self.settings.speed );
 			self.mainVideoNode.playbackRate = parseFloat(self.settings.speed);
 			self.slideVideoNode.playbackRate = parseFloat(self.settings.speed);
+			
 			self.resizePlayer();
+		});
+		self.mainVideo.on('loadedmetadata', function() {
+			self.checkStartTime(self.mainVideoNode);
 		});
 
 		self.slideVideo.on('canplay loadeddata loadedmetadata', function() {
@@ -69,8 +73,14 @@ Player.prototype = {
 			
 			self.mainAudioNode.playbackRate = parseFloat(self.settings.speed);
 			self.slideVideoNode.playbackRate = parseFloat(self.settings.speed);
+			
+			self.checkStartTime(self.mainAudioNode);			
 			self.resizePlayer();
 		});
+		self.mainAudio.on('loadedmetadata', function() {
+			self.checkStartTime(self.mainAudioNode);			
+		});		
+		
 
 
 		self.createEnded();
@@ -942,8 +952,8 @@ Player.prototype = {
 		self.mainVideo.on('timeupdate', timelineUpdate);
 		self.mainAudio.on('timeupdate', timelineUpdate);
 		
-		self.mainAudio.on('loadstart seeking stalled waiting', showBuffer);
-		self.mainVideo.on('loadstart seeking stalled waiting', showBuffer);		
+		self.mainAudio.on('loadstart seeking stalled', showBuffer);
+		self.mainVideo.on('loadstart seeking stalled', showBuffer);		
 		
 		self.mainAudio.on('play playing seeked', hideBuffer);
 		self.mainVideo.on('play playing seeked', hideBuffer);		
@@ -1230,14 +1240,8 @@ Player.prototype = {
 			self.mainMediaNode = self.mainVideoNode;
 		}
 
-
-		function advanceToStartPosition() {
-			self.mainMediaNode.currentTime = startTime;
-			self.mainMedia.off('canplay loadedmetadata', advanceToStartPosition);
-		}
-
 		if (startTime > 0) {
-			self.mainMedia.on('canplay loadedmetadata', advanceToStartPosition);
+			self.mainMedia.on('canplay loadedmetadata', $.proxy(self.advanceToStartPosition, self) );
 		}
 
 		// make sure correct quality is showing
@@ -1270,6 +1274,29 @@ Player.prototype = {
 		}
 
 		self.loadTranscript(transcriptUrl);
+	},
+	
+	checkStartTime: function(media) {
+		var self = this
+		
+		// was there a start time?
+		if (self.startTime) {			
+			var duration = media.duration;
+			
+			if (!isNaN(duration) && self.startTime + 15 > duration) {
+				self.startTime = 0;
+			}
+		}		
+	},
+	
+	advanceToStartPosition: function () {
+		var self = this,
+			startTime = self.startTime;
+		
+		if (startTime && startTime > 0) {
+			self.mainMediaNode.currentTime = startTime;
+		}
+		self.mainMedia.off('canplay loadedmetadata', self.advanceToStartPosition);
 	},
 
 	createTranscript: function() {
