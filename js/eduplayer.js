@@ -27,6 +27,7 @@ Player.prototype = {
 		self.header = $('<div class="player-header"></div>').appendTo(self.container);
 		self.headerButtons = $('<div class="player-header-buttons"></div>').appendTo(self.header);
 		self.headerNavigation = $('<div class="player-header-navigation"></div>').appendTo(self.header);
+		self.message = $('<div class="player-message player-panel"></div>').appendTo(self.container);
 
 		// CONTENT
 		self.mainVideoContainer = $('<div class="player-mainvideo-container"></div>').appendTo(self.container);
@@ -65,7 +66,9 @@ Player.prototype = {
 		});
 		
 		self.slideVideo.on('error', function() {
-			self.displaySlidesMessage('Error loading slides feed');
+			if (self.slideVideoNode.src != '') {
+				self.displaySlidesMessage('Error loading slides video: ' + self.slideVideoNode.src);
+			}
 		});
 
 		self.mainAudio.on('canplay loadeddata loadedmetadata', function() {
@@ -153,6 +156,14 @@ Player.prototype = {
 		self.slidesContainer.hide();
 		self.slideVideo.show();
 	},
+		
+	showMessage: function(text) {
+		this.message.html(text).show();		
+	},
+	
+	hideMessage: function() {
+		this.message.hide();
+	},		
 
 	buildlogo: function() {
 		var self = this,
@@ -952,8 +963,8 @@ Player.prototype = {
 		self.mainVideo.on('timeupdate', timelineUpdate);
 		self.mainAudio.on('timeupdate', timelineUpdate);
 		
-		self.mainAudio.on('loadstart seeking stalled', showBuffer);
-		self.mainVideo.on('loadstart seeking stalled', showBuffer);		
+		self.mainAudio.on('seeking stalled', showBuffer);
+		self.mainVideo.on('seeking stalled', showBuffer);		
 		
 		self.mainAudio.on('play playing seeked', hideBuffer);
 		self.mainVideo.on('play playing seeked', hideBuffer);		
@@ -1264,7 +1275,7 @@ Player.prototype = {
 
 
 			self.slidesContainer.show();
-			self.slideVideoNode.src = '';
+			//self.slideVideoNode.src = '';
 			self.slideVideoContainer.hide();
 
 			self.loadSlideImages(slidesDataUrl, slideImagesPath);
@@ -1405,7 +1416,8 @@ Player.prototype = {
 				textNodes.each(function () {
 					var textNode = $(this),
 						startTime = convertTimecodeToSeconds(textNode.attr('timeCode')),
-						text = textNode.attr('text').replace(/(,\s)?uh,?/gi,' ');
+						text = textNode.attr('text').replace(/(,\s)?uh,?/gi,' '),
+						breakAfter = typeof textNode.attr('breakAfter') != 'undefined';
 
 					if (self.transcriptData.length > 0) {
 						self.transcriptData[self.transcriptData.length-1].endTime = startTime;
@@ -1414,7 +1426,8 @@ Player.prototype = {
 					self.transcriptData.push({
 						startTime: startTime,
 						endTime: startTime+1,
-						text: text
+						text: text,
+						breakAfter: breakAfter
 					});
 				});
 
@@ -1443,12 +1456,18 @@ Player.prototype = {
 		var self = this;
 
 		// add transcript
-		var transcriptHtml = '';
+		var transcriptHtml = '<p>';
 		for (var i = 0, il = self.transcriptData.length; i<il; i++) {
 			var textData = self.transcriptData[i];
 
-			transcriptHtml += '<span class="t-' + i.toString() + '" data-start="' + textData.startTime + '" data-end="' + textData.endTime + '">' + textData.text + '</span>';
+			transcriptHtml += '<span class="t-' + i.toString() + '" data-start="' + textData.startTime + '" data-end="' + textData.endTime + '">' + textData.text + '</span> ';
+			
+			if (textData.breakAfter) {
+				transcriptHtml += '</p><p>';
+			}
 		}
+
+		transcriptHtml += '</p>';
 
 		self.transcriptInner.html(transcriptHtml);
 
@@ -1458,6 +1477,9 @@ Player.prototype = {
 	},
 
 	adjustTranscriptSize: function() {
+		
+		//return;
+		
 		var self = this,
 			minSize = 7,
 			maxSize = 18,
