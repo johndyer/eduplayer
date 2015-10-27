@@ -424,6 +424,28 @@ html, body {
 		color: #999;
 		cursor: pointer;
 	}
+	
+	/* alternate */
+	/*
+	.player-transcript-inner {
+		padding: 10px;
+		line-height: 1.5;
+	}
+
+	.player-transcript-inner span {
+		clear: none;
+		display:inline;
+		float: none;
+		padding: 0;
+		color: #999;
+		cursor: pointer;
+	}
+	.player-transcript-inner span.breakAfter {
+		clear: right;	
+	}
+	*/
+	
+	
 	.player-transcript-inner span:hover {
 		color: #333;
 	}	
@@ -741,4 +763,23 @@ html, body {
 	.player-feedback-button {
 		display: none;
 	}	
+}
+
+
+.player-message {
+	display: none;
+	width: 300px;
+	top: 50%;
+	left: 50%;
+	margin-left: -100px;
+	margin-top: -200px;
+	font-weight: bold;
+}
+.player-message h2 {
+	font-size: 120%;
+	margin-bottom: 1em;
+}
+.player-message p,
+.player-message code {
+	margin-bottom: 1em;
 }
