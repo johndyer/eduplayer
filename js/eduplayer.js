@@ -1943,7 +1943,7 @@ Player.prototype = {
 				transcript.css({
 					width: videoWidth,
 					left: mediaLeft,
-					top: mediaTop + videoHeight - 42, // (mediaHeight / 10)
+					top: mediaTop + videoHeight - (videoHeight/20) - 42, // (mediaHeight / 10)
 					height: 42
 				});
 

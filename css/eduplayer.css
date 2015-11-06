@@ -428,7 +428,7 @@ html, body {
 	/* alternate */
 	
 	.player-transcript-paragraphs {
-		padding: 10px;
+		padding: 12px;
 		line-height: 1.5;
 	}
 
@@ -444,7 +444,7 @@ html, body {
 		margin-bottom: 1em;
 	}
 	
-	
+
 	.player-transcript-inner span:hover {
 		color: #333;
 	}	
@@ -462,7 +462,11 @@ html, body {
 		display: none;
 		text-align: center;
 		margin: 0 auto;
-	}	
+	}
+	.player-transcript.transcript-overlay .player-transcript-paragraphs p {
+		margin: 0;	
+	}
+			
 	.player-transcript.transcript-overlay span.highlight {
 		display: block;
 		background: rgba(0,0,0,0.8);
