@@ -10,14 +10,15 @@ Player.prototype = {
 	init: function() {
 
 		var self = this;
-
+		
 		self.win = $(window);
 		self.settings = {
 			separation: 10,
 			arrangement: self.getValue('player-setting-arrangement', 'largeslides'),
 			transcript: self.getValue('player-setting-transcript', 'show'),
 			speed: self.getValue('player-setting-speed', '1.0'),
-			quality: self.getValue('player-setting-quality', '480p')
+			quality: self.getValue('player-setting-quality', '480p'),
+			paragraphs: true
 		};
 
 		self.controller = null;
@@ -83,8 +84,6 @@ Player.prototype = {
 		self.mainAudio.on('loadedmetadata', function() {
 			self.checkStartTime(self.mainAudioNode);			
 		});		
-		
-
 
 		self.createEnded();
 		self.createTranscript();
@@ -1454,6 +1453,12 @@ Player.prototype = {
 
 	buildTranscript: function() {
 		var self = this;
+		
+		if (self.settings.paragraphs) {
+			self.transcriptInner.addClass('player-transcript-paragraphs');
+		} else {
+			self.transcriptInner.removeClass('player-transcript-paragraphs');
+		}
 
 		// add transcript
 		var transcriptHtml = '<p>';
@@ -1485,6 +1490,18 @@ Player.prototype = {
 			maxSize = 18,
 			widestLine = null,
 			widestLineWidth = 0;
+			
+		if (self.settings.paragraphs) {
+			var transcriptWidth = self.transcriptInner.outerWidth(),
+				fontSize = transcriptWidth/25;
+				
+			if (fontSize < 8) {
+				fontSize = 8;
+			}
+			
+			self.transcriptInner.css({fontSize: fontSize + 'px'});			
+			return;	
+		}
 
 		// don't try if there's no transcript yet
 		if (self.transcriptInner.find('span').length == 0) {

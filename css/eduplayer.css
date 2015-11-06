@@ -426,13 +426,13 @@ html, body {
 	}
 	
 	/* alternate */
-	/*
-	.player-transcript-inner {
+	
+	.player-transcript-paragraphs {
 		padding: 10px;
 		line-height: 1.5;
 	}
 
-	.player-transcript-inner span {
+	.player-transcript-paragraphs span {
 		clear: none;
 		display:inline;
 		float: none;
@@ -440,10 +440,9 @@ html, body {
 		color: #999;
 		cursor: pointer;
 	}
-	.player-transcript-inner span.breakAfter {
-		clear: right;	
+	.player-transcript-paragraphs p {
+		margin-bottom: 1em;
 	}
-	*/
 	
 	
 	.player-transcript-inner span:hover {
