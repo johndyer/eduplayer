@@ -28,7 +28,7 @@ Player.prototype = {
 		self.header = $('<div class="player-header"></div>').appendTo(self.container);
 		self.headerButtons = $('<div class="player-header-buttons"></div>').appendTo(self.header);
 		self.headerNavigation = $('<div class="player-header-navigation"></div>').appendTo(self.header);
-		self.message = $('<div class="player-message player-panel"></div>').appendTo(self.container);
+		self.createMessage();
 
 		// CONTENT
 		self.mainVideoContainer = $('<div class="player-mainvideo-container"></div>').appendTo(self.container);
@@ -155,9 +155,27 @@ Player.prototype = {
 		self.slidesContainer.hide();
 		self.slideVideo.show();
 	},
+	
+	createMessage: function() {	
+		var self = this;
+		
+		self.message = $(
+			'<div class="player-message player-panel">' + 
+				'<div class="player-panel-close">x</div>' + 
+				'<div class="player-message-body"></div>' + 
+			'</div>').appendTo(self.container);
+			
+		self.messageBody = self.message.find('.player-message-body');
+		self.messageClose = self.message.find('.player-panel-close');		
+		
+		self.messageClose.on('click', function() {
+			self.hideMessage();	
+		} );
+	},
 		
 	showMessage: function(text) {
-		this.message.html(text).show();		
+		this.messageBody.html(text)
+		this.message.show();		
 	},
 	
 	hideMessage: function() {
@@ -1939,14 +1957,14 @@ Player.prototype = {
 
 				self.slideVideoContainer.css(slidesCss);
 				slidesContainer.css(slidesCss);
-
+				
 				transcript.css({
 					width: videoWidth,
 					left: mediaLeft,
-					top: mediaTop + videoHeight - (videoHeight/20) - 42, // (mediaHeight / 10)
-					height: 42
-				});
-
+					top: mediaTop,
+					height: videoHeight
+				});				
+				
 
 				break;
 
@@ -2040,12 +2058,13 @@ Player.prototype = {
 				slidesContainer.css(slidesCss);
 
 
+				
 				transcript.css({
 					width: videoWidth,
 					left: mediaLeft,
-					top: mediaTop + videoHeight -  42, // (mediaHeight / 10)
-					height: 42
-				});
+					top: mediaTop,
+					height: videoHeight
+				});	
 
 
 				break;

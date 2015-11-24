@@ -458,6 +458,11 @@ html, body {
 		background: none;
 		text-align: center;
 	}
+	.player-transcript.transcript-overlay .player-transcript-inner {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+	}	
 	.player-transcript.transcript-overlay span {
 		display: none;
 		text-align: center;
@@ -771,11 +776,12 @@ html, body {
 
 .player-message {
 	display: none;
-	width: 300px;
+	width: 400px;
+	min-height: 200px;
 	top: 50%;
 	left: 50%;
-	margin-left: -100px;
-	margin-top: -200px;
+	margin-left: -200px;
+	margin-top: -125px;
 	font-weight: bold;
 }
 .player-message h2 {
@@ -785,4 +791,8 @@ html, body {
 .player-message p,
 .player-message code {
 	margin-bottom: 1em;
+}
+
+.player-message-body {
+	padding-top: 10px;
 }
