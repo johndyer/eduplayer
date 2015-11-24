@@ -17,10 +17,11 @@ $(function() {
 
 		},
 		currentTimeUrl = 'https:/media.dts.edu/player/player-current.ashx',
-		playerProgressUrl = 'https:/media.dts.edu/player/player-progress.ashx'
+		playerProgressUrl = 'https:/media.dts.edu/player/player-progress.ashx',
+		defaultQualities = ['360p','480p']
 		;
 	
-	var courseController = new DtsCoursesController(id, player, baseVideoUrl, baseContentUrl, userCoursesUrl, courseInfoCallback, currentTimeUrl, playerProgressUrl);
+	var courseController = new DtsCoursesController(id, player, baseVideoUrl, baseContentUrl, userCoursesUrl, courseInfoCallback, currentTimeUrl, playerProgressUrl, defaultQualities);
 	window.courseController = courseController;
 	
 	player.controller = courseController;

@@ -1,4 +1,4 @@
-var DtsCoursesController = function (id, player, baseVideoUrl, baseContentUrl, userCourses, courseInfoUrlCallback, currentTimeUrl, playerProgressUrl) {
+var DtsCoursesController = function (id, player, baseVideoUrl, baseContentUrl, userCourses, courseInfoUrlCallback, currentTimeUrl, playerProgressUrl, defaultQualities) {
 	this.id = id;
 	this.baseVideoUrl = baseVideoUrl;
 	this.baseContentUrl = baseContentUrl;
@@ -7,6 +7,7 @@ var DtsCoursesController = function (id, player, baseVideoUrl, baseContentUrl, u
 	this.currentTimeUrl = currentTimeUrl;
 	this.playerProgressUrl = playerProgressUrl;
 	this.player = player;
+	this.defaultQualities = defaultQualities;
 	
 	this.defaultLanguages = {
 		"en-US": { "name": "English", "englishName": "English", "dir": 'ltr' },
@@ -543,7 +544,7 @@ DtsCoursesController.prototype = {
 		}
 		
 		var self = this,
-			qualities = ['360p','480p'],
+			qualities = self.defaultQualities.slice(),
 			courseInfo = self.getCourseInfo(courseCode, language),
 			unitInfo = self.currentCourseData.filter(function(unit) { return unit.number == unitNumber; })[0],
 			videoInfo = unitInfo.videos.filter(function(video) { return video.number == videoNumber; })[0];			
