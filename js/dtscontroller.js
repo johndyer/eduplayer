@@ -11,6 +11,7 @@ var DtsCoursesController = function (id, player, baseVideoUrl, baseContentUrl, u
 	
 	this.defaultLanguages = {
 		"en-US": { "name": "English", "englishName": "English", "dir": 'ltr' },
+		"es-ES": { "name": "Español", "englishName": "Spanish", "dir": 'ltr' },
 		"zh-TW": { "name": "漢語(繁體字)t", "englishName": "Traditional Chinese", "dir": 'ltr' },
 		"zh-CN": { "name": "汉语(简体字)s", "englishName": "Simplified Chinese", "dir": 'ltr' }
 	};
