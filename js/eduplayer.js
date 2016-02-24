@@ -38,6 +38,7 @@ Player.prototype = {
 		self.slideVideoContainer = $('<div class="player-slidesvideo-container"></div>').appendTo(self.container);
 		self.slideVideo = $('<video class="player-slidesvideo"></video>').appendTo(self.slideVideoContainer);
 		self.slideVideoNode = self.slideVideo[0];
+		self.slideVideoNode.muted = true;
 
 		self.mainAudio = $('<audio class="player-mainaudio"></audio>').appendTo(self.container);
 		self.mainAudioNode = self.mainAudio[0];
@@ -980,17 +981,19 @@ Player.prototype = {
 		self.mainVideo.on('timeupdate', timelineUpdate);
 		self.mainAudio.on('timeupdate', timelineUpdate);
 		
-		self.mainAudio.on('seeking stalled', showBuffer);
-		self.mainVideo.on('seeking stalled', showBuffer);		
+		self.mainAudio.on('loadstart seeking stalled', showBuffer);
+		self.mainVideo.on('loadstart seeking stalled', showBuffer);		
 		
 		self.mainAudio.on('play playing seeked', hideBuffer);
 		self.mainVideo.on('play playing seeked', hideBuffer);		
 		
 		function showBuffer() {
+			console.log('buffer event');
 			timelineBuffer.show();			
 		}	
 		
 		function hideBuffer() {
+			console.log('buffer OFF event');			
 			timelineBuffer.hide();
 		}				
 
@@ -1282,6 +1285,7 @@ Player.prototype = {
 			self.slideVideoContainer.show();
 			self.slideVideoNode.src = slidesVideoUrl;
 			self.slideVideoNode.load();
+			self.slideVideoNode.muted = true;
 
 			if (!Detection.isiOS) {
 				self.slideVideoNode.play();
@@ -1409,7 +1413,7 @@ Player.prototype = {
 				currentScrollTop = self.transcript.scrollTop(),
 				currentLinePos = line.position().top,
 				absLinePos = currentScrollTop + currentLinePos,
-				newScrollTop = absLinePos - ( line.outerHeight(true) * 1);
+				newScrollTop = absLinePos - 5; // - ( line.outerHeight(true) * 1);
 
 			// scroll to it
 			self.transcript
@@ -1875,12 +1879,14 @@ Player.prototype = {
 
 		var videoRatioWidth = (mainVideoNode.videoWidth && mainVideoNode.videoHeight) ? mainVideoNode.videoWidth / mainVideoNode.videoHeight : 16/9, // 16/9
 			videoRatioHeight = 1 / videoRatioWidth, // 9/16
-
+			firstImageSlide = slidesContainer.find('img').first(),
 			slideRatioWidth = slideVideo.is(':visible') ?
 								slideVideoNode.videoWidth ?
 									slideVideoNode.videoWidth / slideVideoNode.videoHeight :
 									16 / 9 :
-								4/3, // assume JPG slides are always 4:3
+								firstImageSlide.length > 0 ? 
+									firstImageSlide[0].naturalWidth / firstImageSlide[0].naturalHeight : 
+ 									4/3, // assume JPG slides are always 4:3
 			slideRatioHeight = 1 / slideRatioWidth, // 9/16
 
 			contentTop = header.outerHeight(true) + (separation*2),
