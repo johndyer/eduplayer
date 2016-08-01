@@ -571,8 +571,8 @@ DtsCoursesController.prototype = {
 		var
 			baseCourseFile = courseCode + '_u' + (unitNumber < 100 ? '0' : '') + (unitNumber < 10 ? '0' : '') + unitNumber.toString() + '_v' + (videoNumber < 100 ? '0' : '') + (videoNumber < 10 ? '0' : '') + videoNumber.toString(),		
 			transcriptUrl = self.baseContentUrl + courseCode + '/Transcripts/' + language + '/' + baseCourseFile + '_transcript.xml',
-			slideImagesPath = courseInfo.isVideoSlides ? '' : self.baseContentUrl + courseCode + '/Slides/' + language + '/',
-			slidesDataUrl = courseInfo.isVideoSlides ? '' : slideImagesPath + baseCourseFile + '_slides.xml',
+			slideImagesPath = self.baseContentUrl + courseCode + '/Slides/' + language + '/',
+			slidesDataUrl = slideImagesPath + baseCourseFile + '_slides.xml',
 			slidesVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_ppt.mp4' : ''
 			;
 
@@ -607,8 +607,8 @@ DtsCoursesController.prototype = {
 			baseCourseFile = courseCode + '_u' + (unitNumber < 100 ? '0' : '') + (unitNumber < 10 ? '0' : '') + unitNumber.toString() + '_v' + (videoNumber < 100 ? '0' : '') + (videoNumber < 10 ? '0' : '') + videoNumber.toString(),
 			
 			transcriptUrl = self.baseContentUrl + courseCode + '/Transcripts/' + language + '/' + baseCourseFile + '_transcript.xml',
-			slideImagesPath = courseInfo.isVideoSlides ? '' : self.baseContentUrl + courseCode + '/Slides/' + language + '/',
-			slidesDataUrl = courseInfo.isVideoSlides ? '' : slideImagesPath + baseCourseFile + '_slides.xml',
+			slideImagesPath = self.baseContentUrl + courseCode + '/Slides/' + language + '/',
+			slidesDataUrl = slideImagesPath + baseCourseFile + '_slides.xml',
 			slidesVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_ppt.mp4' : '',
 			
 			combinedVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_combined.mp4' : '',
@@ -616,13 +616,12 @@ DtsCoursesController.prototype = {
 			audioUrl = self.baseVideoUrl + courseCode + '/' + baseCourseFile + '.mp3',
 			mainVideoUrls = [];
 		
-		
+	
 		if (videoInfo.hasSlides == false) {
 			slidesVideoUrl = '';
 			slidesDataUrl = '';			
 			slideImagesPath = '';						
 		}
-		
 		
 
 		for (var i=0,il=qualities.length; i<il; i++) {
