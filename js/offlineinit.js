@@ -17,7 +17,7 @@ $(function() {
 		},
 		currentTimeUrl = '',
 		playerProgressUrl = '',
-		defaultQualities = ['360p','480p']; // only _lo
+		defaultQualities = ['360p']; // only _lo
 		
 	
 	var courseController = new DtsCoursesController(id, player, baseVideoUrl, baseContentUrl, userCoursesUrl, courseInfoCallback, currentTimeUrl, playerProgressUrl, defaultQualities);

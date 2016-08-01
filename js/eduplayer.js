@@ -1190,7 +1190,7 @@ Player.prototype = {
 		}
 	},
 
-	loadCourse: function(mainVideoUrls, audioUrl, transcriptUrl, slidesVideoUrl, slidesDataUrl, slideImagesPath, startTime) {
+	loadCourse: function(mainVideoUrls, audioUrl, transcriptUrl, slidesVideoUrl, slidesDataUrl, slideImagesPath, startTime, changeLanguage) {
 
 		var self = this;
 
@@ -1203,8 +1203,11 @@ Player.prototype = {
 		self.slidesDataUrl = slidesDataUrl;
 		self.slideImagesPath = slideImagesPath;
 		self.startTime = startTime;
+		self.changeLanguage = changeLanguage
 
-		self.reset();
+		if (!changeLanguage) {
+			self.reset();
+		}
 
 		self._load();
 
@@ -1229,7 +1232,8 @@ Player.prototype = {
 			slidesVideoUrl = self.slidesVideoUrl,
 			slidesDataUrl = self.slidesDataUrl,
 			slideImagesPath = self.slideImagesPath,
-			startTime = self.startTime;
+			startTime = self.startTime,
+			changeLanguage = self.changeLanguage;
 
 		// hide all
 		self.qualitySetting
@@ -1237,46 +1241,51 @@ Player.prototype = {
 					.prop('selected', false)
 					.hide();
 
-		for (var i=0, il=mainVideoUrls.length; i<il; i++) {
-			var mainVideo = mainVideoUrls[i];
 
-			// show the option
-			var qualityOption = self.qualitySetting.find('option[value=' + mainVideo.quality + ']').show();
-			if (mainVideo.quality == self.settings.quality) {
-				qualityOption.prop('selected', true);
+		if (!changeLanguage) {
+			
+			// MAIN AUDIO/VIDEO
+			
+			for (var i=0, il=mainVideoUrls.length; i<il; i++) {
+				var mainVideo = mainVideoUrls[i];
+	
+				// show the option
+				var qualityOption = self.qualitySetting.find('option[value=' + mainVideo.quality + ']').show();
+				if (mainVideo.quality == self.settings.quality) {
+					qualityOption.prop('selected', true);
+				}
 			}
+	
+			var currentQuality = self.qualitySetting.find('option:selected').val(),
+				matchingVideos = mainVideoUrls.filter(function(v) { return v.quality == currentQuality;}),
+				videoToPlay = matchingVideos.length > 0 ? matchingVideos[0] : mainVideoUrls[0];
+	
+			
+			if (self.settings.arrangement == 'audio') {
+				self.mainAudioNode.src = audioUrl;
+				self.mainAudioNode.load();
+				self.mainAudioNode.play();
+	
+				self.mainMedia = self.mainAudio;
+				self.mainMediaNode = self.mainAudioNode;
+	
+			} else {
+				// play video
+				self.mainVideoNode.src = videoToPlay.url;
+				self.mainVideoNode.load();
+				self.mainVideoNode.play();
+	
+				self.mainMedia = self.mainVideo;
+				self.mainMediaNode = self.mainVideoNode;
+			}
+	
+			if (startTime > 0) {
+				self.mainMedia.on('canplay loadedmetadata', $.proxy(self.advanceToStartPosition, self) );
+			}
+	
+			// make sure correct quality is showing
+			self.qualitySetting.find('option[value=' + videoToPlay.quality + ']').show().prop('selected', true);
 		}
-
-		var currentQuality = self.qualitySetting.find('option:selected').val(),
-			matchingVideos = mainVideoUrls.filter(function(v) { return v.quality == currentQuality;}),
-			videoToPlay = matchingVideos.length > 0 ? matchingVideos[0] : mainVideoUrls[0];
-
-
-
-		if (self.settings.arrangement == 'audio') {
-			self.mainAudioNode.src = audioUrl;
-			self.mainAudioNode.load();
-			self.mainAudioNode.play();
-
-			self.mainMedia = self.mainAudio;
-			self.mainMediaNode = self.mainAudioNode;
-
-		} else {
-			// play video
-			self.mainVideoNode.src = videoToPlay.url;
-			self.mainVideoNode.load();
-			self.mainVideoNode.play();
-
-			self.mainMedia = self.mainVideo;
-			self.mainMediaNode = self.mainVideoNode;
-		}
-
-		if (startTime > 0) {
-			self.mainMedia.on('canplay loadedmetadata', $.proxy(self.advanceToStartPosition, self) );
-		}
-
-		// make sure correct quality is showing
-		self.qualitySetting.find('option[value=' + videoToPlay.quality + ']').show().prop('selected', true);
 
 		if (slidesVideoUrl != '') {
 			self.container.addClass('player-videosslides');

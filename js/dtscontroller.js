@@ -147,12 +147,26 @@ DtsCoursesController.prototype = {
 	handleLanguageChange: function(e) {
 		var self = this;
 
-		self.unitList.html('');
-		self.unitList.attr('disabled', 'disabled');
-		self.videoList.html('');
-		self.videoList.attr('disabled', 'disabled');		
-		
-		self.loadCoursesByLanguage();	
+		if (self.videoList[0].selectedIndex > 0) {
+			
+			self.loadingInfo.unit = self.getSelectedUnit();
+			self.loadingInfo.video = self.getSelectedVideo();			
+			self.loadingInfo.changeLanguage = true;
+			
+			// switch language
+			self.loadUnits();
+			
+		} else {
+
+			// total reload
+			
+			self.unitList.html('');
+			self.unitList.attr('disabled', 'disabled');
+			self.videoList.html('');
+			self.videoList.attr('disabled', 'disabled');					
+
+			self.loadCoursesByLanguage();	
+		}
 	},			
 	
 	
@@ -229,7 +243,7 @@ DtsCoursesController.prototype = {
 			// see if course has this language, if so add it to the list
 			for (var j = 0, jl= course.languages.length; j < jl; j++) {
 				if (course.languages[j].lang == language) {
-					html += '<option value="' + course.code.toLowerCase() + '">' + course.code.replace(versionRegEx, '') + ': ' + course.languages[j].name + (versionRegEx.test(course.code) ? ' (' +  course.code.match(/v\d/gi) + ')' : '') + (course.languages[j].isVideoSlides ? ' [vs]' : '') + '</option>'; ;
+					html += '<option value="' + course.code + '">' + course.code.replace(versionRegEx, '') + ': ' + course.languages[j].name + (versionRegEx.test(course.code) ? ' (' +  course.code.match(/v\d/gi) + ')' : '') + (course.languages[j].isVideoSlides ? ' [vs]' : '') + '</option>'; ;
 				}
 			}
 		}
@@ -279,25 +293,26 @@ DtsCoursesController.prototype = {
 		self.loadingInfo = info;
 
 		// language
-		if (typeof (self.loadingInfo.language) != 'undefined') {
+		if (typeof self.loadingInfo.language != 'undefined') {
 			self.languageList.val(self.loadingInfo.language);
 			self.setLanguage();
 		}
 
 		// select course
-		if (typeof (self.loadingInfo.course) != 'undefined') {
+		if (typeof self.loadingInfo.course != 'undefined') {
 
 			// check of there is an option with the exact value
 			
-			if (self.courseList.find('option[value="' + self.loadingInfo.course.toLowerCase() + '"]').length > 1) {
-				self.courseList.val( self.loadingInfo.course.toLowerCase() );
+			if (self.courseList.find('option[value="' + self.loadingInfo.course + '"]').length > 1) {
+				self.courseList.val( self.loadingInfo.course );
 			} else {
 				
 				// if ST101, but that's not availble, choose the closest one (ST101v2)				
 				// look for BE101 in the <option>s and then use that to select BE101v2				
-				self.courseList.val( self.courseList.find('option[value*="' + self.loadingInfo.course.toLowerCase() + '"]').attr('value') );
+				self.courseList.val( self.courseList.find('option[value*="' + self.loadingInfo.course + '"]').attr('value') );
 			}
 
+			self.loadLanguagesForCourse();
 			self.loadUnits();
 		}
 
@@ -416,6 +431,8 @@ DtsCoursesController.prototype = {
 				
 				// kill loading info
 				self.loadingInfo = {};
+			} else if (self.loadingInfo.changeLanguage === true) {		
+				self.changePlayerLanguage();					
 			}
 			
 			self.updateBrowserLocation();			
@@ -537,6 +554,37 @@ DtsCoursesController.prototype = {
 		
 		return foundNextVideo;
 	},
+
+	changePlayerLanguage: function() {
+		var 
+			self = this,
+	
+			courseCode = self.getSelectedCourse(),
+			language = self.getSelectedLanguage(),
+			unitNumber = self.getSelectedUnit(),
+			videoNumber = self.getSelectedVideo(),
+			
+			courseInfo = self.getCourseInfo(courseCode, language),
+			unitInfo = self.currentCourseData.filter(function(unit) { return unit.number == unitNumber; })[0],
+			videoInfo = unitInfo.videos.filter(function(video) { return video.number == videoNumber; })[0];			
+		
+		var
+			baseCourseFile = courseCode + '_u' + (unitNumber < 100 ? '0' : '') + (unitNumber < 10 ? '0' : '') + unitNumber.toString() + '_v' + (videoNumber < 100 ? '0' : '') + (videoNumber < 10 ? '0' : '') + videoNumber.toString(),		
+			transcriptUrl = self.baseContentUrl + courseCode + '/Transcripts/' + language + '/' + baseCourseFile + '_transcript.xml',
+			slideImagesPath = courseInfo.isVideoSlides ? '' : self.baseContentUrl + courseCode + '/Slides/' + language + '/',
+			slidesDataUrl = courseInfo.isVideoSlides ? '' : slideImagesPath + baseCourseFile + '_slides.xml',
+			slidesVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_ppt.mp4' : ''
+			;
+
+		if (videoInfo.hasSlides == false) {
+			slidesVideoUrl = '';
+			slidesDataUrl = '';			
+			slideImagesPath = '';						
+		}	
+		
+		player.loadCourse('', '', transcriptUrl, slidesVideoUrl, slidesDataUrl, slideImagesPath, 0, true);	
+		
+	},
 	
 	sendCourseToPlayer: function (language, courseCode, unitNumber, videoNumber, startTime) {
 
@@ -556,29 +604,30 @@ DtsCoursesController.prototype = {
 
 		// STUFF TO PLAY
 		var
-			baseCourseFile = courseCode.toUpperCase().replace('V','v') + '_u' + (unitNumber < 100 ? '0' : '') + (unitNumber < 10 ? '0' : '') + unitNumber.toString() + '_v' + (videoNumber < 100 ? '0' : '') + (videoNumber < 10 ? '0' : '') + videoNumber.toString(),
+			baseCourseFile = courseCode + '_u' + (unitNumber < 100 ? '0' : '') + (unitNumber < 10 ? '0' : '') + unitNumber.toString() + '_v' + (videoNumber < 100 ? '0' : '') + (videoNumber < 10 ? '0' : '') + videoNumber.toString(),
 			
-			transcriptUrl = self.baseContentUrl + courseCode.toLowerCase() + '/Transcripts/' + language + '/' + baseCourseFile + '_transcript.xml',
-			slideImagesPath = courseInfo.isVideoSlides ? '' : self.baseContentUrl + courseCode.toLowerCase() + '/Slides/' + language + '/',
+			transcriptUrl = self.baseContentUrl + courseCode + '/Transcripts/' + language + '/' + baseCourseFile + '_transcript.xml',
+			slideImagesPath = courseInfo.isVideoSlides ? '' : self.baseContentUrl + courseCode + '/Slides/' + language + '/',
 			slidesDataUrl = courseInfo.isVideoSlides ? '' : slideImagesPath + baseCourseFile + '_slides.xml',
-			slidesVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode.toLowerCase() + '/' + baseCourseFile + '_ppt.mp4' : '',
+			slidesVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_ppt.mp4' : '',
 			
-			combinedVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode.toLowerCase() + '/' + baseCourseFile + '_combined.mp4' : '',
+			combinedVideoUrl = courseInfo.isVideoSlides ? self.baseVideoUrl + courseCode + '/' + baseCourseFile + '_combined.mp4' : '',
 			
-			audioUrl = self.baseVideoUrl + courseCode.toLowerCase() + '/' + baseCourseFile + '.mp3',
+			audioUrl = self.baseVideoUrl + courseCode + '/' + baseCourseFile + '.mp3',
 			mainVideoUrls = [];
-			
-			
+		
+		
 		if (videoInfo.hasSlides == false) {
 			slidesVideoUrl = '';
 			slidesDataUrl = '';			
 			slideImagesPath = '';						
 		}
 		
+		
 
 		for (var i=0,il=qualities.length; i<il; i++) {
 			mainVideoUrls.push({
-				url:  self.baseVideoUrl + courseCode.toLowerCase() + '/' + baseCourseFile + self.qualitySuffixes[qualities[i]] + '.mp4',
+				url:  self.baseVideoUrl + courseCode + '/' + baseCourseFile + self.qualitySuffixes[qualities[i]] + '.mp4',
 				quality: qualities[i]				
 			});
 		}
@@ -640,15 +689,16 @@ DtsCoursesController.prototype = {
 		
 		
 		// HACKY CODE
+		/*
 		if (courseCode == 'BE101v3' && !(unitNumber == 1 && videoNumber == 2)) {
 			$('.player-slidesvideo-container').addClass('force_4_3');
 		} else {
 			$('.player-slidesvideo-container').removeClass('force_4_3');			
 		}
-		
+		*/
 
 		// START PLAYING		
-		player.loadCourse(mainVideoUrls, audioUrl, transcriptUrl, slidesVideoUrl, slidesDataUrl, slideImagesPath, startTime);			
+		player.loadCourse(mainVideoUrls, audioUrl, transcriptUrl, slidesVideoUrl, slidesDataUrl, slideImagesPath, startTime, false);
 		player.setDownloads(videoDownloads, transcriptDownloads, slideDownloads);
 		player.setSearchInfo('search.ashx?course=' + courseCode + '&language=' + language, self.searchCallback);
 		
