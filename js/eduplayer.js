@@ -1287,6 +1287,7 @@ Player.prototype = {
 			self.qualitySetting.find('option[value=' + videoToPlay.quality + ']').show().prop('selected', true);
 		}
 
+		// for video slides, do this first
 		if (slidesVideoUrl != '') {
 			self.container.addClass('player-videosslides');
 
@@ -1300,16 +1301,24 @@ Player.prototype = {
 				self.slideVideoNode.play();
 			}
 
-		} else if (slidesDataUrl != '') {
+		} 
+		
+		// if image based slides with no video slides, hide the other features
+		if (slidesDataUrl != '' && slidesVideoUrl == '') {
 			self.container.removeClass('player-videosslides');
 
-
 			self.slidesContainer.show();
-			//self.slideVideoNode.src = '';
 			self.slideVideoContainer.hide();
-
-			self.loadSlideImages(slidesDataUrl, slideImagesPath);
-		} else if (slidesDataUrl == '' && slidesVideoUrl == '') {
+		} 
+		
+		// for both video and images
+		if (slidesDataUrl != '') {
+			self.loadSlideImages(slidesDataUrl, slideImagesPath);			
+		}
+		
+		
+		// no slides at all
+		if (slidesDataUrl == '' && slidesVideoUrl == '') {
 			// no slides at all
 			self.displaySlidesMessage('This video does not have slides');
 		}
@@ -1710,14 +1719,15 @@ Player.prototype = {
 				self.buildSlides();
 			},
 			error: function () {
-				console.log('- error loading slides');
+
+				console.log('- error loading slides data XML');
 				
-				self.displaySlidesMessage('Error loading slides');	
-
+				// only display this to the user for image slides, but not for video slides when this is just the bonus thumbnails
+				if (self.slidesVideoUrl == '') {				
+					self.displaySlidesMessage('Error loading slides');	
+				}
 			}
-
 		});
-
 	},
 	
 	displaySlidesMessage: function(message) {			
