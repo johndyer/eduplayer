@@ -40,7 +40,9 @@ DtsCoursesController.prototype = {
 		self.courseList.on('change', $.proxy(self.handleCourseChange, self));
 		self.unitList.on('change', $.proxy(self.handleUnitChange, self));
 		self.videoList.on('change', $.proxy(self.handleVideoChange, self));
-		self.languageList.on('change', $.proxy(self.handleLanguageChange, self));								
+		self.languageList.on('change', $.proxy(self.handleLanguageChange, self));	
+		
+		$(window).on('popstate', $.proxy(self.handleLocationChange, self));			
 						
 		// connect player events
 		self.setupPlayerEvents();				
@@ -161,9 +163,9 @@ DtsCoursesController.prototype = {
 			// total reload
 			
 			self.unitList.html('');
-			self.unitList.attr('disabled', 'disabled');
+			self.unitList.prop('disabled', true);
 			self.videoList.html('');
-			self.videoList.attr('disabled', 'disabled');					
+			self.videoList.prop('disabled', true);					
 
 			self.loadCoursesByLanguage();	
 		}
@@ -185,10 +187,10 @@ DtsCoursesController.prototype = {
 		
 		var self = this;
 		
-		self.courseList.attr('disabled', 'disabled');
+		self.courseList.prop('disabled', true);
 		self.courseList.html('<option>Loading...</option>');
-		self.unitList.attr('disabled', 'disabled');
-		self.videoList.attr('disabled', 'disabled');
+		self.unitList.prop('disabled', true);
+		self.videoList.prop('disabled', true);
 
 		$.ajax({
 			type: 'GET',
@@ -203,7 +205,11 @@ DtsCoursesController.prototype = {
 				self.loadCoursesByLanguage();
 				
 				// see if the URL has loading data
-				self.loadCourseFromHash();
+				if (location.hash && location.hash.length > 1) {
+					self.loadCourseFromHash();
+				} else if (location.search && location.search.length > 1) {
+					self.loadCourseFromQuerystring();
+				}
 			},
 			error: function (e) {
 				
@@ -243,7 +249,33 @@ DtsCoursesController.prototype = {
 			// see if course has this language, if so add it to the list
 			for (var j = 0, jl= course.languages.length; j < jl; j++) {
 				if (course.languages[j].lang == language) {
-					html += '<option value="' + course.code + '">' + course.code.replace(versionRegEx, '') + ': ' + course.languages[j].name + (versionRegEx.test(course.code) ? ' (' +  course.code.match(/v\d/gi) + ')' : '') + (course.languages[j].isVideoSlides ? ' [vs]' : '') + '</option>'; ;
+					var courseCodeParts = course.code.split('-'),
+						firstPart = courseCodeParts[0].toString(), 
+						simpleCode = ''
+						courseSuffix = '';
+					
+					// old codes (v2)	
+					if (versionRegEx.test(firstPart)) {
+						simpleCode = firstPart.replace(versionRegEx, '');
+						courseSuffix = ' (' + firstPart.match(/v\d/gi) + ')';
+					} else {
+						simpleCode = firstPart.toUpperCase();
+					}
+					
+					if (courseCodeParts.length > 1) {
+						// take off first one
+						courseCodeParts.shift();
+						courseSuffix = ' (' + courseCodeParts.join('-') + ')';
+					}
+						
+
+					
+					html += '<option value="' + course.code + '">' + 
+								simpleCode + ': ' + 
+								course.languages[j].name + 
+								(courseSuffix) + 
+								(course.languages[j].isVideoSlides ? ' [vs]' : '') + 
+							'</option>'; ;
 				}
 			}
 		}
@@ -286,6 +318,19 @@ DtsCoursesController.prototype = {
 		self.fillCourseInfo(hashValues);
 	},
 	
+	loadCourseFromQuerystring: function () {
+		var self = this,
+			querystring = document.location.search.toString().replace('?','').split('#')[0],		
+			qsValues = self.parseTokens(querystring);
+			
+		qsValues.autoplay = true;
+		
+		console.log('qsValues',qsValues);
+			
+		self.fillCourseInfo(qsValues);
+	},	
+	
+	
 	fillCourseInfo: function(info) {
 		
 		var self = this;
@@ -318,16 +363,27 @@ DtsCoursesController.prototype = {
 
 		// TODO: the rest of the class
 	},
+	
+	handleLocationChange: function(event) {
+		var self = this;
+			
+		self.loadCourseFromQuerystring();
+	},
 
 	updateBrowserLocation: function () {
 		var self = this;
 		
-		document.location.hash = self.tokensToString({ 
-			course: self.courseList.val(), 
-			unit: self.unitList.val(), 
-			video: self.videoList.val(), 
-			language: self.languageList.val() 
-		});
+		var pushObj = { 
+					course: self.courseList.val(), 
+					unit: self.unitList.val(), 
+					video: self.videoList.val(), 
+					language: self.languageList.val() 
+				},
+			pushUrl = '?' + self.tokensToString(pushObj);
+		
+		console.log('pushUrl',pushUrl);
+		
+		history.pushState(pushObj, '', pushUrl);		
 	},
 
 	setLanguage: function () {
@@ -347,11 +403,11 @@ DtsCoursesController.prototype = {
 						
 		if (courseCode != '' && language != '') {
 			
-			self.courseList.attr('disabled', 'disabled');
+			self.courseList.prop('disabled', 'disabled');
 			self.unitList.html('<option>Loading...</option>');
-			self.unitList.attr('disabled', 'disabled');
+			self.unitList.prop('disabled', 'disabled');
 			self.videoList.html('<option>Loading...</option>');
-			self.videoList.attr('disabled', 'disabled');				
+			self.videoList.prop('disabled', true);				
 						
 			var url = self.getCourseInfoUrl(courseCode, language);
 
@@ -388,8 +444,13 @@ DtsCoursesController.prototype = {
 					}
 
 				},
-				error: function (e) {				
-					alert('There was an error loading this classes units and video ' + url + ' ' + e);
+				error: function (e) {	
+					
+					self.courseList.prop('disabled', false);
+
+								
+					//alert('There was an error loading this classes units and video ' + url + ' ' + e);
+					console.log('There was an error loading this classes units and video ',url ,e);					
 				}
 			});
 		}
