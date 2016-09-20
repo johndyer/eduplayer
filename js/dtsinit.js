@@ -51,6 +51,10 @@ $(function() {
 	window.courseController = courseController;
 	
 	player.controller = courseController;
+	
+	
+	// add login info
+	$('.player-header-buttons').append($('#dts-login'));
 
 
 });

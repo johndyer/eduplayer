@@ -117,10 +117,18 @@ html, body {
 	}	
 	
 	.player-header-buttons .player-button,
-	.player-controller-buttons .player-button {		
+	.player-controller-buttons .player-button {
 		float: right;
 		margin-left: 10px;
 	}
+	
+	.player-header .player-login {
+		float: right;
+		margin-left: 10px;
+		color: #fff;
+		font-size: 10px;
+		padding: 4px 0;
+	}	
 	
 	.player-settings-button {
 		border: 0;
@@ -375,10 +383,10 @@ html, body {
 	background: #aaa; /* rgba(100,100,100,1.0); */
 }
 .player-timeline-thumb {
-	width: 80px;	
+	width: 30%;	
 	position: absolute;	
 	bottom: 12px;
-	margin-left: -40px;
+	margin-left: -15%;
 	left: 0;
 	z-index: 150;	
 	display: none;
